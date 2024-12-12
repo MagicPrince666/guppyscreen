@@ -2,9 +2,13 @@
 #include "state.h"
 #include "spdlog/spdlog.h"
 
+#if defined(__APPLE__)
+#include <filesystem>
+namespace fs = std::filesystem;
+#else
 #include <experimental/filesystem>
-
 namespace fs = std::experimental::filesystem;
+#endif
 
 LV_IMG_DECLARE(bedmesh_img);
 LV_IMG_DECLARE(fine_tune_img);

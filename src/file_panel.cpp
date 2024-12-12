@@ -8,9 +8,13 @@
 #include <iomanip>
 #include <sstream>
 #include <vector>
+#if defined(__APPLE__)
+#include <filesystem>
+namespace fs = std::filesystem;
+#else
 #include <experimental/filesystem>
-
 namespace fs = std::experimental::filesystem;
+#endif
 
 #define THUMBSCALE = 0.78
 

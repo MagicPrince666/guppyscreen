@@ -10,15 +10,21 @@
 #include <sstream>
 #include <iomanip>
 #include <sys/ioctl.h>
-#include <linux/if.h>
+#include <sys/socket.h>
 #include <ifaddrs.h>
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <cstring>
-#include <experimental/filesystem>
 #include <regex>
 
+#if defined(__APPLE__)
+#include <filesystem>
+namespace fs = std::filesystem;
+#else
+#include <linux/if.h>
+#include <experimental/filesystem>
 namespace fs = std::experimental::filesystem;
+#endif
 
 namespace KUtils {
 
@@ -150,9 +156,11 @@ namespace KUtils {
     struct ifaddrs *addrs;
     getifaddrs(&addrs);
     for (struct ifaddrs *addr = addrs; addr != nullptr; addr = addr->ifa_next) {
+#if !defined(__APPLE__)
         if (addr->ifa_addr && addr->ifa_addr->sa_family == AF_PACKET) {
-	  ifaces.push_back(addr->ifa_name);
+	        ifaces.push_back(addr->ifa_name);
         }
+#endif
     }
 
     freeifaddrs(addrs);

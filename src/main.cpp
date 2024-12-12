@@ -8,9 +8,13 @@
 #include <pthread.h>
 #include <time.h>
 #include <sys/time.h>
+#if defined(__APPLE__)
+#include <filesystem>
+namespace fs = std::filesystem;
+#else
 #include <experimental/filesystem>
-
 namespace fs = std::experimental::filesystem;
+#endif
 
 
 #ifdef SIMULATOR

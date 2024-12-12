@@ -41,7 +41,6 @@ add_definitions(-DPROJECT_PATH="${PROJECT_SOURCE_DIR}")
 
 set(COMMON_LIBRARIES
     pthread
-    stdc++fs
     libhv.a
     libwpa_client.a
     libspdlog.a
@@ -52,7 +51,7 @@ if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
   message(STATUS "${CMAKE_SYSTEM_PROCESSOR} mechine compile")
   add_definitions(-DLV_BUILD_TEST=0 -DSIMULATOR -D_GNU_SOURCE -DSPDLOG_COMPILED_LIB)
   find_package(SDL2 REQUIRED)
-  list(APPEND COMMON_LIBRARIES ${SDL2_LIBRARIES})
+  list(APPEND COMMON_LIBRARIES ${SDL2_LIBRARIES} stdc++fs)
 else()
 if (${CMAKE_HOST_SYSTEM_PROCESSOR} MATCHES "x86_64")
   # 交叉编译fb应用
@@ -63,11 +62,13 @@ else()
 endif()
 endif()
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+set(CMAKE_CXX_STANDARD 17)
 if (${MACHINES} MATCHES "arm64")
   message(STATUS "apple slicon compile")
 else()
   message(STATUS "intel compile")
 endif()
+  add_definitions(-DLV_BUILD_TEST=0 -DSIMULATOR -D_GNU_SOURCE -DSPDLOG_COMPILED_LIB)
   find_package(SDL2 REQUIRED)
   list(APPEND COMMON_LIBRARIES ${SDL2_LIBRARIES})
   include_directories(${SDL2_INCLUDE_DIRS})

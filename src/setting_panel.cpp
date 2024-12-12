@@ -3,9 +3,13 @@
 #include "spdlog/spdlog.h"
 #include "subprocess.hpp"
 
+#if defined(__APPLE__)
+#include <filesystem>
+namespace fs = std::filesystem;
+#else
 #include <experimental/filesystem>
-
 namespace fs = std::experimental::filesystem;
+#endif
 namespace sp = subprocess;
 
 LV_IMG_DECLARE(network_img);

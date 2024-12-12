@@ -11,9 +11,13 @@
 #include <map>
 #include <vector>
 #include <utility>
+#if defined(__APPLE__)
+#include <filesystem>
+namespace fs = std::filesystem;
+#else
 #include <experimental/filesystem>
-
 namespace fs = std::experimental::filesystem;
+#endif
 
 using json = nlohmann::json;
 

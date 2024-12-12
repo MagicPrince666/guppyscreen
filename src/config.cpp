@@ -4,9 +4,13 @@
 #include <sys/stat.h>
 #include <fstream>
 #include <iomanip>
+#if defined(__APPLE__)
+#include <filesystem>
+namespace fs = std::filesystem;
+#else
 #include <experimental/filesystem>
-
 namespace fs = std::experimental::filesystem;
+#endif
 
 Config *Config::instance{NULL};
 
