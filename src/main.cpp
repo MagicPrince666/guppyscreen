@@ -41,7 +41,7 @@ int main(void)
 
     Config *conf = Config::get_instance();
     auto config_path = fs::canonical("/proc/self/exe").parent_path() / "guppyconfig.json";
-    conf->init(config_path.string(), "/usr/data/printer_data/thumbnails");
+    conf->init(config_path.string(), "/tmp/thumbnails");
 
     GuppyScreen::init(hal_init);
     GuppyScreen::loop();
