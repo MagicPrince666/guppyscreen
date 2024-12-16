@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-project(dreame_ui LANGUAGES CXX C)
+project(guppyscreen LANGUAGES CXX C)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -9,7 +9,7 @@ endif()
 
 # Default to C++14
 if(NOT CMAKE_CXX_STANDARD)
-  set(CMAKE_CXX_STANDARD 11)
+  set(CMAKE_CXX_STANDARD 17)
 endif()
 
 message(STATUS "System : ${CMAKE_SYSTEM_NAME}")
@@ -60,6 +60,7 @@ else()
   # 直接编译
   message(STATUS "host compile")
 endif()
+  list(APPEND COMMON_LIBRARIES stdc++fs)
 endif()
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 set(CMAKE_CXX_STANDARD 17)
@@ -78,6 +79,7 @@ else()
 endif()
 
 # set(CMAKE_BUILD_TYPE "Debug")
+set(CMAKE_BUILD_TYPE "Relese")
 if (${CMAKE_BUILD_TYPE} MATCHES "Debug")
 add_definitions(-DBACKTRACE_DEBUG)
 endif ()
