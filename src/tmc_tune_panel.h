@@ -4,8 +4,8 @@
 #include "websocket_client.h"
 #include "button_container.h"
 #include "lvgl/lvgl.h"
-#include "hv/iniparser.h"
-#include "hv/json.hpp"
+#include "iniparser.h"
+#include "json.hpp"
 
 #include <memory>
 #include <map>

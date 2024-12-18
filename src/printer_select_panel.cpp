@@ -1,7 +1,7 @@
 #include "printer_select_panel.h"
 #include "guppyscreen.h"
 #include "config.h"
-#include "hv/json.hpp"
+#include "json.hpp"
 #include "subprocess.hpp"
 
 #if defined(__APPLE__)

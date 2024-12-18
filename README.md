@@ -113,3 +113,28 @@ or
 [KlipperScreen](https://github.com/KlipperScreen/KlipperScreen)  
 [Fluidd](https://github.com/fluidd-core/fluidd)  
 [Klippain-shaketune](https://github.com/Frix-x/klippain-shaketune)  
+
+## 同步子仓库
+```bash
+git submodule update --init --recursive
+```
+
+## 关闭光标闪烁
+```bash
+echo 0 > /sys/class/graphics/fbcon/cursor_blink
+```
+
+## 设置工具链
+```bash
+export CROSS_COMPILE=/home/huangliquan/tina-d1-h/out/d1s-mq/staging_dir/toolchain/bin/riscv64-unknown-linux-gnu-
+```
+
+## 交叉编译
+```bash
+cmake -DCMAKE_TOOLCHAIN_FILE=cmake/build_for_d1x.cmake ..
+```
+
+## tina连接热点
+```bash
+wifi_connect_ap_test XiaoXianNv_2.4G yy930225
+```

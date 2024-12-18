@@ -1,7 +1,7 @@
 #ifndef __NOTIFY_CONSUMER_H__
 #define __NOTIFY_CONSUMER_H__
 
-#include "hv/json.hpp"
+#include "json.hpp"
 
 using json = nlohmann::json;
 

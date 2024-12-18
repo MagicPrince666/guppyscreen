@@ -41,9 +41,6 @@ add_definitions(-DPROJECT_PATH="${PROJECT_SOURCE_DIR}")
 
 set(COMMON_LIBRARIES
     pthread
-    libhv.a
-    libwpa_client.a
-    libspdlog.a
 )
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -56,12 +53,14 @@ else()
 if (${CMAKE_HOST_SYSTEM_PROCESSOR} MATCHES "x86_64")
   # 交叉编译fb应用
   message(STATUS "cross compile")
+  # list(APPEND COMMON_LIBRARIES ${OPENSSL_SSL_LIBRARY})
 else()
   # 直接编译
   message(STATUS "host compile")
 endif()
   list(APPEND COMMON_LIBRARIES stdc++fs)
 endif()
+add_definitions(-DCONFIG_ELOOP_EPOLL)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 set(CMAKE_CXX_STANDARD 17)
 if (${MACHINES} MATCHES "arm64")
@@ -70,6 +69,7 @@ else()
   message(STATUS "intel compile")
 endif()
   add_definitions(-DLV_BUILD_TEST=0 -DSIMULATOR -D_GNU_SOURCE -DSPDLOG_COMPILED_LIB)
+  add_definitions(-DCONFIG_ELOOP_KQUEUE)
   find_package(SDL2 REQUIRED)
   list(APPEND COMMON_LIBRARIES ${SDL2_LIBRARIES})
   include_directories(${SDL2_INCLUDE_DIRS})
@@ -84,20 +84,27 @@ if (${CMAKE_BUILD_TYPE} MATCHES "Debug")
 add_definitions(-DBACKTRACE_DEBUG)
 endif ()
 
+add_definitions(-DCONFIG_CTRL_IFACE -DCONFIG_CTRL_IFACE_UNIX -DSPDLOG_COMPILED_LIB)
+
 include_directories(
   .
   src
-  libhv/include
+  libhv
+  libhv/base
+  libhv/cpputil
+  libhv/event
+  libhv/evpp
+  libhv/http
+  libhv/http/client
+  libhv/http/server
+  libhv/ssl
+  libhv/util
   spdlog/include
+  wpa_supplicant/src
   wpa_supplicant/src/common
+  wpa_supplicant/src/utils
   lvgl
   lv_touch_calibration
-)
-
-link_directories(
-  libhv/lib
-  spdlog/build
-  wpa_supplicant/wpa_supplicant
 )
 
 file(GLOB main_srcs 
@@ -105,9 +112,21 @@ file(GLOB main_srcs
     assets/*.c
     assets/material/*.c
     lv_touch_calibration/*.c
+    libhv/base/*.c
+    libhv/cpputil/*.cpp
+    libhv/event/*.c
+    libhv/http/*.c
+    libhv/http/*.cpp
+    libhv/http/client/*.cpp
+    libhv/http/server/*.cpp
+    libhv/ssl/*.c
+    libhv/util/*.c
+    wpa_supplicant/src/common/wpa_ctrl.c
+    wpa_supplicant/src/utils/os_unix.c
+    wpa_supplicant/src/utils/wpa_debug.c
+    wpa_supplicant/src/utils/common.c
+    spdlog/src/*.cpp
 )
-
-list(REMOVE_ITEM main_srcs src/kd_graphic_mode.cpp)
 
 add_subdirectory(lvgl)
 add_subdirectory(lv_drivers)

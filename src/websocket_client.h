@@ -1,9 +1,9 @@
 #ifndef __KWEBSOCKET_CLIENT_H__
 #define __KWEBSOCKET_CLIENT_H__
 
-#include "hv/WebSocketClient.h"
+#include "WebSocketClient.h"
 #include "notify_consumer.h"
-#include "hv/json.hpp"
+#include "json.hpp"
 
 #include <map>
 #include <vector>
@@ -45,7 +45,7 @@ class KWebSocketClient : public hv::WebSocketClient {
 
   // method_name : { <unique-name-cb-handler> :handler-cb }
   std::map<std::string, std::map<std::string, std::function<void(json&)>>> method_resp_cbs;
-  std::atomic_uint64_t id;
+  std::atomic<uint64_t> id;
 };
 
 #endif //__KWEBSOCKET_CLIENT_H__

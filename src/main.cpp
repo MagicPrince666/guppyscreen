@@ -30,7 +30,7 @@ static int tick_thread(void *data);
 static void hal_init(lv_color_t p, lv_color_t s);
 
 #include "guppyscreen.h"
-#include "hv/hlog.h"
+#include "hlog.h"
 #include "config.h"
 #if defined(__linux__)
 #include <sys/ioctl.h>
@@ -227,13 +227,15 @@ static void hal_init(lv_color_t primary, lv_color_t secondary) {
     lv_disp_drv_init(&disp_drv);
     disp_drv.draw_buf   = &disp_buf;
     disp_drv.flush_cb   = fbdev_flush;
-    disp_drv.sw_rotate = 1;              // add for rotation
-    disp_drv.rotated   = LV_DISP_ROT_90; // add for rotation
 
     uint32_t width;
     uint32_t height;
     uint32_t dpi;
     fbdev_get_sizes(&width, &height, &dpi);
+    if (width < height) { // 横屏显示
+        disp_drv.sw_rotate = 1;              // add for rotation
+        disp_drv.rotated   = LV_DISP_ROT_90; // add for rotation
+    }
     
     disp_drv.hor_res    = width;
     disp_drv.ver_res    = height;
