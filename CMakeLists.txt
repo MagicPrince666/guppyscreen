@@ -46,7 +46,7 @@ set(COMMON_LIBRARIES
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
   message(STATUS "${CMAKE_SYSTEM_PROCESSOR} mechine compile")
-  add_definitions(-DLV_BUILD_TEST=0 -DSIMULATOR -D_GNU_SOURCE -DSPDLOG_COMPILED_LIB)
+  add_definitions(-DLV_BUILD_TEST=0 -DSIMULATOR -D_GNU_SOURCE)
   find_package(SDL2 REQUIRED)
   list(APPEND COMMON_LIBRARIES ${SDL2_LIBRARIES} stdc++fs)
 else()
@@ -65,14 +65,21 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 set(CMAKE_CXX_STANDARD 17)
 if (${MACHINES} MATCHES "arm64")
   message(STATUS "apple slicon compile")
+  #include_directories(/opt/homebrew/include)
 else()
   message(STATUS "intel compile")
+  #include_directories(/usr/local/opt/openssl/include)
 endif()
-  add_definitions(-DLV_BUILD_TEST=0 -DSIMULATOR -D_GNU_SOURCE -DSPDLOG_COMPILED_LIB)
-  add_definitions(-DCONFIG_ELOOP_KQUEUE)
+  add_definitions(-DLV_BUILD_TEST=0 -DSIMULATOR -D_GNU_SOURCE -DCONFIG_ELOOP_KQUEUE)
   find_package(SDL2 REQUIRED)
-  list(APPEND COMMON_LIBRARIES ${SDL2_LIBRARIES})
+  # find_package(OpenSSL QUIET)
+  list(APPEND COMMON_LIBRARIES 
+    ${SDL2_LIBRARIES}
+    # ${OPENSSL_SSL_LIBRARY}
+    # ${OPENSSL_CRYPTO_LIBRARY}
+  )
   include_directories(${SDL2_INCLUDE_DIRS})
+  set(CMAKE_EXE_LINKER_FLAGS "-framework CoreFoundation -framework Security")
 else()
   # windows not support
   message(STATUS "System : ${CMAKE_SYSTEM_NAME} not support")
