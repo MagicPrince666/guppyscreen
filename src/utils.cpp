@@ -170,7 +170,9 @@ namespace KUtils {
 
   std::string interface_ip(const std::string &interface) {
     int fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
-
+#if defined(__APPLE__) && defined(__arm64__)
+    return "";
+#else
     struct ifreq ifr{};
     strcpy(ifr.ifr_name, interface.c_str());
     ioctl(fd, SIOCGIFADDR, &ifr);
@@ -179,6 +181,7 @@ namespace KUtils {
     char ip[INET_ADDRSTRLEN];
     strcpy(ip, inet_ntoa(((sockaddr_in *) &ifr.ifr_addr)->sin_addr));
     return ip;
+#endif
   }
 
   std::string get_wifi_interface() {
