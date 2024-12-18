@@ -32,12 +32,6 @@ static void hal_init(lv_color_t p, lv_color_t s);
 #include "guppyscreen.h"
 #include "hlog.h"
 #include "config.h"
-#if defined(__linux__)
-#include <sys/ioctl.h>
-#include <sys/kd.h>
-#include <fcntl.h>
-#include <sys/stat.h>
-#endif
 
 #include <algorithm>
 
@@ -196,16 +190,7 @@ int main(int argc, char* argv[])
     auto config_path = fs::canonical("/proc/self/exe").parent_path() / "guppyconfig.json";
     conf->init(config_path.string(), "/tmp/thumbnails");
 #endif
-#if defined(__linux__)
-    struct stat buffer;
-    // disable blinking cursor
-    if (stat("/dev/tty0", &buffer) == 0) {
-      int console_fd = open("/dev/tty0", O_RDWR);
-      if (console_fd) {
-        ioctl(console_fd, KDSETMODE, KD_GRAPHICS);
-      }
-    }
-#endif
+
     GuppyScreen::init(hal_init);
     GuppyScreen::loop();
     return 0;

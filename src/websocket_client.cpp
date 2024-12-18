@@ -87,7 +87,7 @@ int KWebSocketClient::connect(const char* url,
   };
 
   onclose = [disconnected]() {
-    spdlog::debug("onclose");
+    // spdlog::debug("onclose");
     disconnected();
   };
 
