@@ -18,7 +18,6 @@
 #include <regex>
 
 #if defined(__APPLE__)
-#include <sys/socket.h>
 #include <net/if.h>
 #include <filesystem>
 namespace fs = std::filesystem;
@@ -158,11 +157,9 @@ namespace KUtils {
     struct ifaddrs *addrs;
     getifaddrs(&addrs);
     for (struct ifaddrs *addr = addrs; addr != nullptr; addr = addr->ifa_next) {
-#if !defined(__APPLE__)
-        if (addr->ifa_addr && addr->ifa_addr->sa_family == AF_PACKET) {
+        if (addr->ifa_addr && addr->ifa_addr->sa_family == AF_LINK) { // AF_PACKET
 	        ifaces.push_back(addr->ifa_name);
         }
-#endif
     }
 
     freeifaddrs(addrs);
