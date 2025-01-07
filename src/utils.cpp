@@ -157,7 +157,11 @@ namespace KUtils {
     struct ifaddrs *addrs;
     getifaddrs(&addrs);
     for (struct ifaddrs *addr = addrs; addr != nullptr; addr = addr->ifa_next) {
-        if (addr->ifa_addr && addr->ifa_addr->sa_family == AF_LINK) { // AF_PACKET
+#if defined(__linux__)
+        if (addr->ifa_addr && addr->ifa_addr->sa_family == AF_PACKET) {
+#else
+        if (addr->ifa_addr && addr->ifa_addr->sa_family == AF_LINK) {
+#endif
 	        ifaces.push_back(addr->ifa_name);
         }
     }

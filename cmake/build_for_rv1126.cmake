@@ -6,7 +6,8 @@ SET(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install)
 SET(CMAKE_SYSTEM_PROCESSOR "arm")
 
 # 工具链地址
-SET(TOOLCHAIN_DIR  "/home/leo/firefly/prebuilts/gcc/linux-x86/arm/gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf/bin/")
+# SET(TOOLCHAIN_DIR  "/home/leo/rv1126_ubuntu_sdk/prebuilts/gcc/linux-x86/arm/gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf/bin/")
+SET(TOOLCHAIN_DIR  "/home/leo/rv1126_ubuntu_sdk/buildroot/output/firefly_rv1126_rv1109/host/bin/")
 
 # 设置头文件所在目录
 include_directories(

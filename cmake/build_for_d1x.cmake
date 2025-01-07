@@ -6,20 +6,20 @@ SET(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install)
 SET(CMAKE_SYSTEM_PROCESSOR "riscv64")
 
 # 工具链地址
-SET(TOOLCHAIN_DIR  "/home/pdk/tina/out/d1s-mq/staging_dir/toolchain/bin/")
+SET(TOOLCHAIN_DIR  "/home/leo/tina/out/d1s-mq/staging_dir/toolchain/bin/")
 
 # 设置头文件所在目录
 include_directories(
-    /home/pdk/tina/out/d1s-mq/staging_dir/target/usr/include
-    /home/pdk/tina/out/d1s-mq/staging_dir/target/usr/include/dbus-1.0
-    /home/pdk/tina/out/d1s-mq/staging_dir/target/usr/include/glib-2.0
-    /home/pdk/tina/out/d1s-mq/staging_dir/target/usr/lib/dbus-1.0/include
-    /home/pdk/tina/out/d1s-mq/staging_dir/target/usr/lib/glib-2.0/include
+    ${TOOLCHAIN_DIR}../../target/usr/include
+    ${TOOLCHAIN_DIR}../../target/usr/include/dbus-1.0
+    ${TOOLCHAIN_DIR}../../target/usr/include/glib-2.0
+    ${TOOLCHAIN_DIR}../../target/usr/lib/dbus-1.0/include
+    ${TOOLCHAIN_DIR}../../target/usr/lib/glib-2.0/include
 )
 
 # 设置第三方库所在位置
 link_directories(
-    /home/pdk/tina/out/d1s-mq/staging_dir/target/usr/lib
+    ${TOOLCHAIN_DIR}../../target/usr/lib
 )
 SET(OPENSSL_CRYPTO_LIBRARY crypto)
 SET(OPENSSL_SSL_LIBRARY ssl)
