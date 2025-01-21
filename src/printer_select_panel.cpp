@@ -3,6 +3,7 @@
 #include "config.h"
 #include "json.hpp"
 #include "subprocess.hpp"
+#include "utils.h"
 
 #if defined(__APPLE__)
 #include <filesystem>
@@ -238,7 +239,12 @@ PrinterSelectPanel::PrinterSelectPanel()
         conf->set<std::string>("/default_printer", pname);
         conf->save();
         conf->init(conf->get<std::string>("/config_path"), conf->get<std::string>("/thumbnail_path"));
-        std::string ws_url = fmt::format("ws://{}:{}/websocket", ip, port);
+        std::string ws_url = "";
+        if (KUtils::FileExists(ip)) {
+          ws_url = fmt::format("{}", ip);
+        } else {
+          ws_url = fmt::format("ws://{}:{}/websocket", ip, port);
+        }
         GuppyScreen::get()->connect_ws(ws_url);
       }
     }
