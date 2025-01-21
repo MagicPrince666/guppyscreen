@@ -16,6 +16,7 @@
 #include "spdlog/spdlog.h"
 #include "state.h"
 #include "theme.h"
+#include "utils.h"
 
 GuppyScreen *GuppyScreen::instance = NULL;
 lv_style_t GuppyScreen::style_container;
@@ -144,9 +145,16 @@ GuppyScreen *GuppyScreen::init(std::function<void(lv_color_t, lv_color_t)> hal_i
   auto printers = conf->get_json("/printers");
   if (!printers.empty()) {
     // start initializing all guppy components
-    std::string ws_url = fmt::format("ws://{}:{}/websocket",
-                                     conf->get<std::string>(conf->df() + "moonraker_host"),
+    std::string ws_url = "";
+    std::string sockaddr = conf->get<std::string>(conf->df() + "moonraker_host");
+    if (KUtils::FileExists(sockaddr)) {
+      // 本地通信
+      ws_url = fmt::format("{}", sockaddr);
+    } else {
+      ws_url = fmt::format("ws://{}:{}/websocket",
+                                     sockaddr,
                                      conf->get<uint32_t>(conf->df() + "moonraker_port"));
+    }
 
     spdlog::info("connecting to printer at {}", ws_url);
     gs->connect_ws(ws_url);
@@ -232,9 +240,13 @@ std::mutex &GuppyScreen::get_lock() {
 
 void GuppyScreen::connect_ws(const std::string &url) {
   init_panel.set_message(LV_SYMBOL_WARNING " Waiting for printer to initialize...");
-  ws.connect(url.c_str(),
+  int fd = ws.connect(url.c_str(),
    [this]() { init_panel.connected(ws); },
    [this]() { init_panel.disconnected(ws); });
+  
+  if (fd > 0) {
+    init_panel.set_message("Welcome to Dreame Screen. Use the Setting Panel to add your printers.");
+  }
 }
 
 void GuppyScreen::new_theme_apply_cb(lv_theme_t *th, lv_obj_t *obj) {

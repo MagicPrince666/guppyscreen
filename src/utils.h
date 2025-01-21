@@ -48,6 +48,14 @@ namespace KUtils {
 
   std::map<std::string, std::map<std::string, std::string>> parse_macros(json &m);
 
+  /**
+   * @brief 检查文件是否存在
+   * @param name
+   * @return true
+   * @return false
+   */
+  bool FileExists(const std::string name);
+
 };
 
 #endif // __K_UTILS_H__

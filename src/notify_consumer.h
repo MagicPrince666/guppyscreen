@@ -1,6 +1,7 @@
 #ifndef __NOTIFY_CONSUMER_H__
 #define __NOTIFY_CONSUMER_H__
 
+#include <mutex>
 #include "json.hpp"
 
 using json = nlohmann::json;

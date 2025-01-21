@@ -2,6 +2,7 @@
 #define __KWEBSOCKET_CLIENT_H__
 
 #include "WebSocketClient.h"
+#include "UnixDomainSocket.h"
 #include "notify_consumer.h"
 #include "json.hpp"
 
@@ -9,6 +10,7 @@
 #include <vector>
 #include <atomic>
 #include <functional>
+#include <memory>
 
 using json = nlohmann::json;
 
@@ -46,6 +48,16 @@ class KWebSocketClient : public hv::WebSocketClient {
   // method_name : { <unique-name-cb-handler> :handler-cb }
   std::map<std::string, std::map<std::string, std::function<void(json&)>>> method_resp_cbs;
   std::atomic<uint64_t> id;
+  std::shared_ptr<UnixDomainSocket> uds_module_;
+  std::function<void()> connected_;
+	std::function<void()> disconnected_;
+
+  /**
+     * @brief uds接收klipper服务端回调
+     * @param buffer 
+     * @param length 
+     */
+    void RecvUdsServerBuffer(const uint8_t *buffer, const int length);
 };
 
 #endif //__KWEBSOCKET_CLIENT_H__

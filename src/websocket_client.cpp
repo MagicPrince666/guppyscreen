@@ -31,65 +31,85 @@ int KWebSocketClient::connect(const char* url,
 			      std::function<void()> connected,
 			      std::function<void()> disconnected) {
   spdlog::debug("websocket connecting");
-  // set callbacks
-  onopen = [this, connected]() {
-    const HttpResponsePtr& resp = getHttpResponse();
-    spdlog::debug("onopen {}", resp->body.c_str());
-    connected();
-  };
-  onmessage = [this, connected, disconnected](const std::string &msg) {
-    // if (msg.find("notify_proc_stat_update") == std::string::npos) {
-    //   spdlog::trace("onmessage(type={} len={}): {}", opcode() == WS_OPCODE_TEXT ? "text" : "binary",
-    // 	     (int)msg.size(), msg);
-    // }
-    auto j = json::parse(msg);
 
-    if (j.contains("id")) {
-      // XXX: get rid of consumers and use function ptrs for callback
-      const auto &entry = consumers.find(j["id"]);
-      if (entry != consumers.end()) {
-        entry->second->consume(j);
-        consumers.erase(entry);
-      }
+  if(!uds_module_) {
+    uds_module_ = std::make_shared<UnixDomainSocket>(url, true);
+  }
+  if (uds_module_) {
+    connected_ = connected;
+    disconnected_ = disconnected;
+    uds_module_->AddReadServerDataCallBack(std::bind(&KWebSocketClient::RecvUdsServerBuffer, this, std::placeholders::_1, std::placeholders::_2));
+  } else {
+    // set callbacks
+    onopen = [this, connected]() {
+      const HttpResponsePtr& resp = getHttpResponse();
+      spdlog::info("onopen {}", resp->body.c_str());
+      connected();
+    };
 
-      const auto &cb_entry = callbacks.find(j["id"]);
-      if (cb_entry != callbacks.end()) {
-        cb_entry->second(j);
-        callbacks.erase(cb_entry);
-      }
-    }
-
-    if (j.contains("method")) {
-      std::string method = j["method"].template get<std::string>();
-      if ("notify_status_update" == method) {
-        for (const auto &entry : notify_consumers) {
-          entry->consume(j);
-        }
-      }  //  else if ("notify_gcode_response" == method) {
-      // 	for (const auto &gcode_cb : gcode_resp_cbs) {
-      // 	  gcode_cb(j);
-      // 	}
+    onmessage = [this, connected, disconnected](const std::string &msg) {
+      // if (msg.find("notify_proc_stat_update") == std::string::npos) {
+      //   spdlog::trace("onmessage(type={} len={}): {}", opcode() == WS_OPCODE_TEXT ? "text" : "binary",
+      // 	     (int)msg.size(), msg);
       // }
-      else if ("notify_klippy_disconnected" == method) {
-        disconnected();
-      } else if ("notify_klippy_ready" == method) {
-        connected();
+      auto j = json::parse(msg);
+
+      if (j.contains("id")) {
+        // XXX: get rid of consumers and use function ptrs for callback
+        const auto &entry = consumers.find(j["id"]);
+        if (entry != consumers.end()) {
+          entry->second->consume(j);
+          consumers.erase(entry);
+        }
+
+        const auto &cb_entry = callbacks.find(j["id"]);
+        if (cb_entry != callbacks.end()) {
+          cb_entry->second(j);
+          callbacks.erase(cb_entry);
+        }
       }
 
-      for (const auto &entry : method_resp_cbs) {
-        if (method == entry.first) {
-          for (const auto &handler_entry : entry.second) {
-            handler_entry.second(j);
+      if (j.contains("method")) {
+        std::string method = j["method"].template get<std::string>();
+        if ("notify_status_update" == method) {
+          for (const auto &entry : notify_consumers) {
+            entry->consume(j);
+          }
+        }  //  else if ("notify_gcode_response" == method) {
+        // 	for (const auto &gcode_cb : gcode_resp_cbs) {
+        // 	  gcode_cb(j);
+        // 	}
+        // }
+        else if ("notify_klippy_disconnected" == method) {
+          disconnected();
+        } else if ("notify_klippy_ready" == method) {
+          connected();
+        }
+
+        for (const auto &entry : method_resp_cbs) {
+          if (method == entry.first) {
+            for (const auto &handler_entry : entry.second) {
+              handler_entry.second(j);
+            }
           }
         }
       }
-    }
-  };
+    };
+  }
 
   onclose = [disconnected]() {
     // spdlog::debug("onclose");
     disconnected();
   };
+
+  if (uds_module_) {
+    if (!uds_module_->ConnectServer()) {
+      spdlog::error("unix domain socket connecting failed!");
+      uds_module_ = nullptr;
+      return -1;
+    }
+    return uds_module_->GetClientSockfd();
+  }
 
   // ping
   setPingInterval(10000);
@@ -167,6 +187,12 @@ int KWebSocketClient::send_jsonrpc(const std::string &method,
   rpc["params"] = params;
   rpc["id"] = id++;
 
+  if (uds_module_) {
+    std::string request = rpc.dump();
+    request += "\x03";
+    spdlog::debug("send_jsonrpc by uds: {}", request);
+    return uds_module_->ClientSendMsg(request.c_str(), request.size());
+  }
   spdlog::debug("send_jsonrpc: {}", rpc.dump());
   return send(rpc.dump());
 }
@@ -177,12 +203,21 @@ int KWebSocketClient::send_jsonrpc(const std::string &method) {
   rpc["method"] = method;
   rpc["id"] = id++;
 
+  if (uds_module_) {
+    std::string request = rpc.dump();
+    request += "\x03";
+    spdlog::debug("send_jsonrpc by uds: {}", request);
+    return uds_module_->ClientSendMsg(request.c_str(), request.size());
+  }
   spdlog::debug("send_jsonrpc: {}", rpc.dump());
   return send(rpc.dump());
 }
 
 int KWebSocketClient::gcode_script(const std::string &gcode) {
   json cmd = {{ "script", gcode }};
+  if (uds_module_) {
+    return send_jsonrpc("gcode/script", cmd);
+  }
   return send_jsonrpc("printer.gcode.script", cmd);
 }
 
@@ -201,4 +236,67 @@ void KWebSocketClient::register_method_callback(std::string resp_method,
 		  resp_method, handler_name);
     entry->second.insert({handler_name, cb});
   }
+}
+
+void KWebSocketClient::RecvUdsServerBuffer(const uint8_t *buffer, const int length)
+{
+    std::string msg = std::string(reinterpret_cast<const char *>(buffer), length);
+    // if (msg.find("notify_proc_stat_update") == std::string::npos) {
+    //   spdlog::trace("onmessage(type={} len={}): {}", opcode() == WS_OPCODE_TEXT ? "text" : "binary",
+    // 	     (int)msg.size(), msg);
+    // }
+    size_t pos = msg.find_last_not_of("\x03");
+    if (pos != std::string::npos) {
+        // 删除最后一个\x03
+        msg = msg.substr(0, pos + 1);
+    }
+
+    spdlog::info("get_jsonrpc: {}", msg);
+
+    auto j = json::parse(msg);
+
+    if (j.contains("id")) {
+      // XXX: get rid of consumers and use function ptrs for callback
+      const auto &entry = consumers.find(j["id"]);
+      if (entry != consumers.end()) {
+        entry->second->consume(j);
+        consumers.erase(entry);
+      }
+
+      const auto &cb_entry = callbacks.find(j["id"]);
+      if (cb_entry != callbacks.end()) {
+        cb_entry->second(j);
+        callbacks.erase(cb_entry);
+      }
+    }
+
+    if (j.contains("method")) {
+      std::string method = j["method"].template get<std::string>();
+      if ("notify_status_update" == method) {
+        for (const auto &entry : notify_consumers) {
+          entry->consume(j);
+        }
+      }  //  else if ("notify_gcode_response" == method) {
+      // 	for (const auto &gcode_cb : gcode_resp_cbs) {
+      // 	  gcode_cb(j);
+      // 	}
+      // }
+      else if ("notify_klippy_disconnected" == method) {
+        uds_module_->ClientSockfdClose();
+        disconnected_();
+      } else if ("notify_klippy_ready" == method) {
+        if (uds_module_ && !uds_module_->ConnectServer()) {
+          spdlog::error("failed to reconnect");
+        }
+        connected_();
+      }
+
+      for (const auto &entry : method_resp_cbs) {
+        if (method == entry.first) {
+          for (const auto &handler_entry : entry.second) {
+            handler_entry.second(j);
+          }
+        }
+      }
+    }
 }

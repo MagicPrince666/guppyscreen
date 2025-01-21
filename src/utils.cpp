@@ -41,10 +41,16 @@ namespace KUtils {
     return false;
   }
 
+  bool FileExists(const std::string name)
+  {
+      struct stat buffer;
+      return (stat(name.c_str(), &buffer) == 0);
+  }
+
   bool is_running_local() {
     Config *conf = Config::get_instance();
     std::string df_host = conf->get<std::string>(conf->df() + "moonraker_host");
-    return df_host == "localhost" || df_host == "127.0.0.1";
+    return df_host == "localhost" || df_host == "127.0.0.1" || FileExists(df_host);
   }
 
   std::string get_root_path(const std::string root_name) {
@@ -299,4 +305,5 @@ namespace KUtils {
 
     return macros;
   }
+
   }  // namespace KUtils
