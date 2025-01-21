@@ -78,8 +78,8 @@ void Config::init(std::string config_path, const std::string thumbdir) {
         {"wpa_supplicant", "/var/run/wpa_supplicant"},
         {"display_sleep_sec", 600}
 #ifndef OS_ANDROID
-        , {"default_printer", "DM-B1"},
-        {"printers", {{"DM-B1", {
+        , {"default_printer", "CR6SE"},
+        {"printers", {{"CR6SE", {
                                  {"moonraker_api_key", false},
                                  {"moonraker_host", "/tmp/klippy_uds"},
                                  {"moonraker_port", 7125},
