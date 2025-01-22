@@ -41,7 +41,6 @@ add_definitions(-DPROJECT_PATH="${PROJECT_SOURCE_DIR}")
 
 set(COMMON_LIBRARIES
     pthread
-    atomic
 )
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -59,7 +58,7 @@ else()
   # 直接编译
   message(STATUS "host compile")
 endif()
-  list(APPEND COMMON_LIBRARIES stdc++fs)
+  list(APPEND COMMON_LIBRARIES stdc++fs atomic)
 endif()
 add_definitions(-DCONFIG_ELOOP_EPOLL)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
