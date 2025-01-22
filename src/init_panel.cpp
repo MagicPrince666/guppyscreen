@@ -44,45 +44,45 @@ void InitPanel::connected(KWebSocketClient &ws) {
   State *state = State::get_instance();
   state->reset();
 
-  ws.send_jsonrpc("printer.objects.list", [this, &ws](json& d) {
+  ws.send_jsonrpc("objects/list", [this, &ws](json& d) {
     State *state = State::get_instance();
 	state->set_data("printer_objs", d, "/result");
 
-	ws.send_jsonrpc("server.files.roots",
-			[](json& j) { State::get_instance()->set_data("roots", j, "/result"); });
+	// ws.send_jsonrpc("server.files.roots",
+	// 		[](json& j) { State::get_instance()->set_data("roots", j, "/result"); });
 
-	ws.send_jsonrpc("printer.info",
+	ws.send_jsonrpc("info",
 			[](json& j) { State::get_instance()->set_data("printer_info", j, "/result"); });
 	
-	json h = {
-	  { "namespace", "fluidd" },
-	  { "key", "console" }
-	};
-	ws.send_jsonrpc("server.database.get_item", h,
-			[](json& j) { State::get_instance()->set_data("console", j, "/result/value"); });
+	// json h = {
+	//   { "namespace", "fluidd" },
+	//   { "key", "console" }
+	// };
+	// ws.send_jsonrpc("server.database.get_item", h,
+	// 		[](json& j) { State::get_instance()->set_data("console", j, "/result/value"); });
 
-	h = {
-	  { "namespace", "guppyscreen" }
-	};
-	ws.send_jsonrpc("server.database.get_item", h,
-			[](json& j) { State::get_instance()->set_data("guppysettings", j, "/result/value"); });	
+	// h = {
+	//   { "namespace", "guppyscreen" }
+	// };
+	// ws.send_jsonrpc("server.database.get_item", h,
+	// 		[](json& j) { State::get_instance()->set_data("guppysettings", j, "/result/value"); });	
 
 	// console
 	this->main_panel.subscribe();
 
-	// spoolman
-	ws.send_jsonrpc("server.info", [this](json &j) {
-	  spdlog::debug("server_info {}", j.dump());
-	  State::get_instance()->set_data("server_info", j, "/result");
+	// // spoolman
+	// ws.send_jsonrpc("server.info", [this](json &j) {
+	//   spdlog::debug("server_info {}", j.dump());
+	//   State::get_instance()->set_data("server_info", j, "/result");
 	  
-	  auto &components = j["/result/components"_json_pointer];
-	  if (!components.is_null()) {
-	    const auto &has_spoolman = components.template get<std::vector<std::string>>();
-	    if (std::find(has_spoolman.begin(), has_spoolman.end(), "spoolman") != has_spoolman.end()) {
-	      this->main_panel.enable_spoolman();
-	    }
-	  }
-	});
+	//   auto &components = j["/result/components"_json_pointer];
+	//   if (!components.is_null()) {
+	//     const auto &has_spoolman = components.template get<std::vector<std::string>>();
+	//     if (std::find(has_spoolman.begin(), has_spoolman.end(), "spoolman") != has_spoolman.end()) {
+	//       this->main_panel.enable_spoolman();
+	//     }
+	//   }
+	// });
 
 	auto display_sensors = state->get_display_sensors();
 	this->main_panel.create_sensors(display_sensors);
@@ -124,9 +124,9 @@ void InitPanel::connected(KWebSocketClient &ws) {
 	}
   });
 
-  ws.send_jsonrpc("machine.device_power.devices", [this](json& j) {
-    main_panel.get_tune_panel().get_power_panel().create_devices(j);
-  });
+//   ws.send_jsonrpc("machine.device_power.devices", [this](json& j) {
+//     main_panel.get_tune_panel().get_power_panel().create_devices(j);
+//   });
 }
 
 void InitPanel::disconnected(KWebSocketClient &ws) {

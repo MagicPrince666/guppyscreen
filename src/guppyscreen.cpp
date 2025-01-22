@@ -243,10 +243,6 @@ void GuppyScreen::connect_ws(const std::string &url) {
   int fd = ws.connect(url.c_str(),
    [this]() { init_panel.connected(ws); },
    [this]() { init_panel.disconnected(ws); });
-  
-  if (fd > 0) {
-    init_panel.set_message("Welcome to Dreame Screen. Use the Setting Panel to add your printers.");
-  }
 }
 
 void GuppyScreen::new_theme_apply_cb(lv_theme_t *th, lv_obj_t *obj) {

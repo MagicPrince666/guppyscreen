@@ -11,6 +11,8 @@
 #include <atomic>
 #include <functional>
 #include <memory>
+#include <condition_variable>
+#include <mutex>
 
 using json = nlohmann::json;
 
@@ -51,6 +53,13 @@ class KWebSocketClient : public hv::WebSocketClient {
   std::shared_ptr<UnixDomainSocket> uds_module_;
   std::function<void()> connected_;
 	std::function<void()> disconnected_;
+  std::condition_variable g_cv_; // 全局条件变量
+    std::mutex g_mtx_;             // 全局互斥锁.
+  struct
+    {
+        uint8_t rx_buffer[2048];
+        uint32_t size; // buf长度
+    } uds_buffer_;
 
   /**
      * @brief uds接收klipper服务端回调
@@ -58,6 +67,8 @@ class KWebSocketClient : public hv::WebSocketClient {
      * @param length 
      */
     void RecvUdsServerBuffer(const uint8_t *buffer, const int length);
+
+    void HandleCallback(std::string &method);
 };
 
 #endif //__KWEBSOCKET_CLIENT_H__

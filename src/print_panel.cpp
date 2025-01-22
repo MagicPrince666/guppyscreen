@@ -175,7 +175,7 @@ void PrintPanel::consume(json &j) {
 }
 
 void PrintPanel::subscribe() {
-  ws.send_jsonrpc("server.files.list", R"({"root":"gcodes"})"_json, [this](json &d) {
+  ws.send_jsonrpc("gcode/help", R"({"root":"gcodes"})"_json, [this](json &d) {
     std::lock_guard<std::mutex> lock(lv_lock);
     std::string cur_path = cur_dir->full_path;
     root.clear();

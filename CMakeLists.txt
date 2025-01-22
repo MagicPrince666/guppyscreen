@@ -41,6 +41,7 @@ add_definitions(-DPROJECT_PATH="${PROJECT_SOURCE_DIR}")
 
 set(COMMON_LIBRARIES
     pthread
+    atomic
 )
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")

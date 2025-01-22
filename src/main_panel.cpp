@@ -73,8 +73,8 @@ MainPanel::~MainPanel() {
 }
 
 void MainPanel::subscribe() {
-  spdlog::trace("main panel subscribing");
-  ws.send_jsonrpc("printer.gcode.help", [this](json &d) { console_panel.handle_macros(d); });
+  spdlog::trace("main panel subscribing"); // SD卡文件列表
+  // ws.send_jsonrpc("objects/query", [this](json &d) { console_panel.handle_macros(d); });
   print_panel.subscribe();
 }
 
