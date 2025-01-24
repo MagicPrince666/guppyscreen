@@ -15,11 +15,10 @@
 
 #include <algorithm>
 
-using namespace hv;
 using json = nlohmann::json;
 
-KWebSocketClient::KWebSocketClient(EventLoopPtr loop)
-    : WebSocketClient(loop), id(0)
+KWebSocketClient::KWebSocketClient()
+    : id(0)
 {
     uds_buffer_.size = 0;
 }
@@ -41,68 +40,7 @@ int KWebSocketClient::connect(const char *url,
         connected_    = connected;
         disconnected_ = disconnected;
         uds_module_->AddReadServerDataCallBack(std::bind(&KWebSocketClient::RecvUdsServerBuffer, this, std::placeholders::_1, std::placeholders::_2));
-    } else {
-        // set callbacks
-        onopen = [this, connected]() {
-            const HttpResponsePtr &resp = getHttpResponse();
-            spdlog::info("onopen {}", resp->body.c_str());
-            connected();
-        };
-
-        onmessage = [this, connected, disconnected](const std::string &msg) {
-            // if (msg.find("notify_proc_stat_update") == std::string::npos) {
-            //   spdlog::trace("onmessage(type={} len={}): {}", opcode() == WS_OPCODE_TEXT ? "text" : "binary",
-            // 	     (int)msg.size(), msg);
-            // }
-            auto j = json::parse(msg);
-
-            if (j.contains("id")) {
-                // XXX: get rid of consumers and use function ptrs for callback
-                const auto &entry = consumers.find(j["id"]);
-                if (entry != consumers.end()) {
-                    entry->second->consume(j);
-                    consumers.erase(entry);
-                }
-
-                const auto &cb_entry = callbacks.find(j["id"]);
-                if (cb_entry != callbacks.end()) {
-                    cb_entry->second(j);
-                    callbacks.erase(cb_entry);
-                }
-            }
-
-            if (j.contains("method")) {
-                std::string method = j["method"].template get<std::string>();
-                if ("notify_status_update" == method) {
-                    for (const auto &entry : notify_consumers) {
-                        entry->consume(j);
-                    }
-                } //  else if ("notify_gcode_response" == method) {
-                // 	for (const auto &gcode_cb : gcode_resp_cbs) {
-                // 	  gcode_cb(j);
-                // 	}
-                // }
-                else if ("notify_klippy_disconnected" == method) {
-                    disconnected();
-                } else if ("notify_klippy_ready" == method) {
-                    connected();
-                }
-
-                for (const auto &entry : method_resp_cbs) {
-                    if (method == entry.first) {
-                        for (const auto &handler_entry : entry.second) {
-                            handler_entry.second(j);
-                        }
-                    }
-                }
-            }
-        };
     }
-
-    onclose = [disconnected]() {
-        // spdlog::debug("onclose");
-        disconnected();
-    };
 
     if (uds_module_) {
         if (!uds_module_->ConnectServer()) {
@@ -114,18 +52,7 @@ int KWebSocketClient::connect(const char *url,
         return uds_module_->GetClientSockfd();
     }
 
-    // ping
-    setPingInterval(10000);
-
-    reconn_setting_t reconn;
-    reconn_setting_init(&reconn);
-    reconn.min_delay    = 200;
-    reconn.max_delay    = 2000;
-    reconn.delay_policy = 2;
-    setReconnect(&reconn);
-
-    http_headers headers;
-    return open(url, headers);
+    return 0;
 };
 
 int KWebSocketClient::send_jsonrpc(const std::string &method,
@@ -205,8 +132,7 @@ int KWebSocketClient::send_jsonrpc(const std::string &method,
         // g_cv_.wait_for(lck, std::chrono::milliseconds(1000));
         return ret;
     }
-    spdlog::debug("send_jsonrpc: {}", rpc.dump());
-    return send(rpc.dump());
+    return 0;
 }
 
 int KWebSocketClient::send_jsonrpc(const std::string &method)
@@ -225,8 +151,7 @@ int KWebSocketClient::send_jsonrpc(const std::string &method)
         // g_cv_.wait_for(lck, std::chrono::milliseconds(1000));
         return ret;
     }
-    spdlog::debug("send_jsonrpc: {}", rpc.dump());
-    return send(rpc.dump());
+    return 0;
 }
 
 int KWebSocketClient::gcode_script(const std::string &gcode)

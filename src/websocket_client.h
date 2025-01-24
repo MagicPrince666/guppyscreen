@@ -1,7 +1,6 @@
 #ifndef __KWEBSOCKET_CLIENT_H__
 #define __KWEBSOCKET_CLIENT_H__
 
-#include "WebSocketClient.h"
 #include "UnixDomainSocket.h"
 #include "notify_consumer.h"
 #include "json.hpp"
@@ -16,9 +15,9 @@
 
 using json = nlohmann::json;
 
-class KWebSocketClient : public hv::WebSocketClient {
+class KWebSocketClient {
  public:
-  KWebSocketClient(hv::EventLoopPtr loop);
+  KWebSocketClient();
   ~KWebSocketClient();
 
   int connect(const char* url,

@@ -29,7 +29,7 @@ lv_theme_t GuppyScreen::th_new;
 lv_obj_t *GuppyScreen::screen_saver = NULL;
 #endif
 
-KWebSocketClient GuppyScreen::ws(NULL);
+KWebSocketClient GuppyScreen::ws;
 
 std::mutex GuppyScreen::lv_lock;
 
