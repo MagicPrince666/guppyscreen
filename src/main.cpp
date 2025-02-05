@@ -35,8 +35,6 @@ static void hal_init(lv_color_t p, lv_color_t s);
 
 #include <algorithm>
 
-using namespace hv;
-
 #define DISP_BUF_SIZE (128 * 1024)
 
 #if defined(__unix__) || defined(__APPLE__)
