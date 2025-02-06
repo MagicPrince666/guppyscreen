@@ -17,17 +17,17 @@
 
 using json = nlohmann::json;
 
-KWebSocketClient::KWebSocketClient()
+GcodeTransmitClient::GcodeTransmitClient()
     : id(0)
 {
     uds_buffer_.size = 0;
 }
 
-KWebSocketClient::~KWebSocketClient()
+GcodeTransmitClient::~GcodeTransmitClient()
 {
 }
 
-int KWebSocketClient::connect(const char *url,
+int GcodeTransmitClient::connect(const char *url,
                               std::function<void()> connected,
                               std::function<void()> disconnected)
 {
@@ -39,7 +39,7 @@ int KWebSocketClient::connect(const char *url,
     if (uds_module_) {
         connected_    = connected;
         disconnected_ = disconnected;
-        uds_module_->AddReadServerDataCallBack(std::bind(&KWebSocketClient::RecvUdsServerBuffer, this, std::placeholders::_1, std::placeholders::_2));
+        uds_module_->AddReadServerDataCallBack(std::bind(&GcodeTransmitClient::RecvUdsServerBuffer, this, std::placeholders::_1, std::placeholders::_2));
     }
 
     if (uds_module_) {
@@ -55,7 +55,7 @@ int KWebSocketClient::connect(const char *url,
     return 0;
 };
 
-int KWebSocketClient::send_jsonrpc(const std::string &method,
+int GcodeTransmitClient::send_jsonrpc(const std::string &method,
                                    const json &params,
                                    std::function<void(json &)> cb)
 {
@@ -72,7 +72,7 @@ int KWebSocketClient::send_jsonrpc(const std::string &method,
     return 0;
 }
 
-int KWebSocketClient::send_jsonrpc(const std::string &method,
+int GcodeTransmitClient::send_jsonrpc(const std::string &method,
                                    std::function<void(json &)> cb)
 {
     const auto &entry = callbacks.find(id);
@@ -88,7 +88,7 @@ int KWebSocketClient::send_jsonrpc(const std::string &method,
     return 0;
 }
 
-int KWebSocketClient::send_jsonrpc(const std::string &method, const json &params, NotifyConsumer *consumer)
+int GcodeTransmitClient::send_jsonrpc(const std::string &method, const json &params, NotifyConsumer *consumer)
 {
     const auto &entry = consumers.find(id);
     if (entry == consumers.end()) {
@@ -98,14 +98,14 @@ int KWebSocketClient::send_jsonrpc(const std::string &method, const json &params
     return 0;
 }
 
-void KWebSocketClient::register_notify_update(NotifyConsumer *consumer)
+void GcodeTransmitClient::register_notify_update(NotifyConsumer *consumer)
 {
     if (std::find(notify_consumers.begin(), notify_consumers.end(), consumer) == std::end(notify_consumers)) {
         notify_consumers.push_back(consumer);
     }
 }
 
-void KWebSocketClient::unregister_notify_update(NotifyConsumer *consumer)
+void GcodeTransmitClient::unregister_notify_update(NotifyConsumer *consumer)
 {
     notify_consumers.erase(std::remove_if(
         notify_consumers.begin(), notify_consumers.end(),
@@ -114,7 +114,7 @@ void KWebSocketClient::unregister_notify_update(NotifyConsumer *consumer)
         }));
 }
 
-int KWebSocketClient::send_jsonrpc(const std::string &method,
+int GcodeTransmitClient::send_jsonrpc(const std::string &method,
                                    const json &params)
 {
     json rpc;
@@ -135,7 +135,7 @@ int KWebSocketClient::send_jsonrpc(const std::string &method,
     return 0;
 }
 
-int KWebSocketClient::send_jsonrpc(const std::string &method)
+int GcodeTransmitClient::send_jsonrpc(const std::string &method)
 {
     json rpc;
     rpc["jsonrpc"] = "2.0";
@@ -154,7 +154,7 @@ int KWebSocketClient::send_jsonrpc(const std::string &method)
     return 0;
 }
 
-int KWebSocketClient::gcode_script(const std::string &gcode)
+int GcodeTransmitClient::gcode_script(const std::string &gcode)
 {
     json cmd = {{"script", gcode}};
     if (uds_module_) {
@@ -163,7 +163,7 @@ int KWebSocketClient::gcode_script(const std::string &gcode)
     return send_jsonrpc("printer.gcode.script", cmd);
 }
 
-void KWebSocketClient::register_method_callback(std::string resp_method,
+void GcodeTransmitClient::register_method_callback(std::string resp_method,
                                                 std::string handler_name,
                                                 std::function<void(json &)> cb)
 {
@@ -181,7 +181,7 @@ void KWebSocketClient::register_method_callback(std::string resp_method,
     }
 }
 
-void KWebSocketClient::RecvUdsServerBuffer(const uint8_t *buffer, const int length)
+void GcodeTransmitClient::RecvUdsServerBuffer(const uint8_t *buffer, const int length)
 {
     std::unique_lock<std::mutex> lck(g_mtx_);
     int32_t buf_size = sizeof(uds_buffer_.rx_buffer) - uds_buffer_.size;
@@ -206,7 +206,7 @@ void KWebSocketClient::RecvUdsServerBuffer(const uint8_t *buffer, const int leng
     }
 }
 
-void KWebSocketClient::HandleCallback(std::string &method)
+void GcodeTransmitClient::HandleCallback(std::string &method)
 {
     size_t pos = method.find_last_not_of("\x03");
     if (pos != std::string::npos) {

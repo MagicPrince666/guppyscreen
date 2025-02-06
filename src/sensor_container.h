@@ -9,7 +9,7 @@
 
 class SensorContainer {
  public:
-  SensorContainer(KWebSocketClient &c,
+  SensorContainer(GcodeTransmitClient &c,
 		  lv_obj_t *parent,
 		  const void *img,
 		  const char *text,
@@ -21,7 +21,7 @@ class SensorContainer {
 		  lv_obj_t *chart,
 		  lv_chart_series_t *chart_series);
 		  
-  SensorContainer(KWebSocketClient &c,
+  SensorContainer(GcodeTransmitClient &c,
 		  lv_obj_t *parent,
 		  const void *img,
 		  uint16_t img_scale,
@@ -48,7 +48,7 @@ class SensorContainer {
   };
 
  private:
-  KWebSocketClient &ws;
+  GcodeTransmitClient &gcode_transmit_;
   lv_obj_t *sensor_cont;
   lv_obj_t *sensor_img;
   lv_obj_t *sensor_label;

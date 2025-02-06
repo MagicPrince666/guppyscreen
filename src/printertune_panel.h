@@ -15,7 +15,7 @@
 #include <mutex>
 class PrinterTunePanel {
  public:
-  PrinterTunePanel(KWebSocketClient &c, std::mutex &l, lv_obj_t *parent, FineTunePanel &);
+  PrinterTunePanel(GcodeTransmitClient &c, std::mutex &l, lv_obj_t *parent, FineTunePanel &);
   ~PrinterTunePanel();
 
   lv_obj_t *get_container();

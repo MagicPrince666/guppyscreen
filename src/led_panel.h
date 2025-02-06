@@ -12,7 +12,7 @@
 
 class LedPanel : public NotifyConsumer {
  public:
-  LedPanel(KWebSocketClient &, std::mutex &);
+  LedPanel(GcodeTransmitClient &, std::mutex &);
   ~LedPanel();
 
   void consume(json &j);
@@ -41,7 +41,7 @@ class LedPanel : public NotifyConsumer {
 
 
  private:
-  KWebSocketClient &ws;
+  GcodeTransmitClient &gcode_transmit_;
   lv_obj_t *ledpanel_cont;
   lv_obj_t *leds_cont;
   std::map<std::string, std::shared_ptr<SliderContainer>> leds;

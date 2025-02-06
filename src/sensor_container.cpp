@@ -3,7 +3,7 @@
 
 #include <string>
 
-SensorContainer::SensorContainer(KWebSocketClient &c,
+SensorContainer::SensorContainer(GcodeTransmitClient &c,
 				 lv_obj_t *parent,
 				 const void *img,
 				 const char *text,
@@ -14,7 +14,7 @@ SensorContainer::SensorContainer(KWebSocketClient &c,
 				 std::string name,
 				 lv_obj_t *chart_chart,
 				 lv_chart_series_t *chart_series)
-  : ws(c)
+  : gcode_transmit_(c)
   , sensor_cont(lv_obj_create(parent))
   , sensor_img(lv_img_create(sensor_cont))
   , sensor_label(lv_label_create(sensor_cont))
@@ -81,7 +81,7 @@ SensorContainer::SensorContainer(KWebSocketClient &c,
     } 
 }
 
-SensorContainer::SensorContainer(KWebSocketClient &c,
+SensorContainer::SensorContainer(GcodeTransmitClient &c,
 				 lv_obj_t *parent,
 				 const void *img,
 				 uint16_t img_scale,
@@ -143,7 +143,7 @@ void SensorContainer::handle_edit(lv_event_t *e) {
   if (lv_event_get_code(e) == LV_EVENT_CLICKED) {
     spdlog::trace("sensor callback this {}, {}, {}", id, fmt::ptr(this), fmt::ptr(&numpad));
     numpad.set_callback([this](double v) {
-      ws.gcode_script(fmt::format("SET_HEATER_TEMPERATURE HEATER={} TARGET={}", id, v));
+      gcode_transmit_.gcode_script(fmt::format("SET_HEATER_TEMPERATURE HEATER={} TARGET={}", id, v));
     });
     numpad.foreground_reset();
   }

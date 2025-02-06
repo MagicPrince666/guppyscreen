@@ -11,7 +11,7 @@
 
 class MacroItem {
  public:
-  MacroItem(KWebSocketClient &c,
+  MacroItem(GcodeTransmitClient &c,
 	    lv_obj_t *parent,
 	    std::string macro_name,
 	    const std::map<std::string, std::string> &m_params,
@@ -43,7 +43,7 @@ class MacroItem {
   };
 
  private:
-  KWebSocketClient &ws;
+  GcodeTransmitClient &gcode_transmit_;
   lv_obj_t *cont;
   lv_obj_t *top_cont;
   lv_obj_t *macro_label;

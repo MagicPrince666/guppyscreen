@@ -1,7 +1,7 @@
 #include "prompt_panel.h"
+#include "spdlog/spdlog.h"
 #include "state.h"
 #include "utils.h"
-#include "spdlog/spdlog.h"
 
 // uncomment for helper boxes
 // #define DEBUG_LINES
@@ -13,22 +13,17 @@ static lv_style_t style_btn_orange;
 static lv_style_t style_btn_dark_grey;
 static lv_style_t button_group_flex_style;
 
-PromptPanel::PromptPanel(KWebSocketClient &websocket_client, std::mutex &lock, lv_obj_t *parent)
-    : NotifyConsumer(lock)
-    , ws(websocket_client)
-    , prompt_cont(lv_obj_create(lv_scr_act()))
-    , flex(lv_obj_create(prompt_cont))
-    , header(lv_label_create(prompt_cont))
-    , footer_cont(lv_obj_create(prompt_cont))
+PromptPanel::PromptPanel(GcodeTransmitClient &websocket_client, std::mutex &lock, lv_obj_t *parent)
+    : NotifyConsumer(lock), gcode_transmit_(websocket_client), prompt_cont(lv_obj_create(lv_scr_act())), flex(lv_obj_create(prompt_cont)), header(lv_label_create(prompt_cont)), footer_cont(lv_obj_create(prompt_cont))
 //  , back_btn(promptpanel_cont, &back, "Back", &PromptPanel::_handle_callback, this)
 {
     lv_obj_set_style_pad_all(prompt_cont, 0, 0);
-    
+
     // lv_obj_clear_flag(promptpanel_cont, LV_OBJ_FLAG_SCROLLABLE);
 
     static lv_coord_t grid_main_row_dsc_detail[] = {LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
     // header, flex, buttons
-    static lv_coord_t grid_main_col_dsc_detail[] = {LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST}; 
+    static lv_coord_t grid_main_col_dsc_detail[] = {LV_GRID_FR(1), LV_GRID_TEMPLATE_LAST};
     // single column
 
     lv_obj_center(prompt_cont);
@@ -45,9 +40,9 @@ PromptPanel::PromptPanel(KWebSocketClient &websocket_client, std::mutex &lock, l
 
     lv_obj_set_style_pad_all(flex, 0, 0);
 
-    lv_obj_set_grid_cell(header,                LV_GRID_ALIGN_START,    0, 1, LV_GRID_ALIGN_START,  0, 1);
-    lv_obj_set_grid_cell(flex,                  LV_GRID_ALIGN_START,    0, 1, LV_GRID_ALIGN_CENTER, 1, 1);
-    lv_obj_set_grid_cell(footer_cont,          LV_GRID_ALIGN_CENTER,   0, 1, LV_GRID_ALIGN_END,    2, 1);
+    lv_obj_set_grid_cell(header, LV_GRID_ALIGN_START, 0, 1, LV_GRID_ALIGN_START, 0, 1);
+    lv_obj_set_grid_cell(flex, LV_GRID_ALIGN_START, 0, 1, LV_GRID_ALIGN_CENTER, 1, 1);
+    lv_obj_set_grid_cell(footer_cont, LV_GRID_ALIGN_CENTER, 0, 1, LV_GRID_ALIGN_END, 2, 1);
 
     lv_obj_set_size(header, lv_pct(100), lv_pct(10));
     lv_obj_set_size(flex, lv_pct(100), lv_pct(60));
@@ -57,7 +52,6 @@ PromptPanel::PromptPanel(KWebSocketClient &websocket_client, std::mutex &lock, l
     lv_obj_clear_flag(header, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_clear_flag(flex, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_clear_flag(footer_cont, LV_OBJ_FLAG_SCROLLABLE);
-
 
     // set buttons horizontal
     //
@@ -96,8 +90,8 @@ PromptPanel::PromptPanel(KWebSocketClient &websocket_client, std::mutex &lock, l
     lv_obj_set_style_border_color(footer_cont, lv_palette_main(LV_PALETTE_BLUE), LV_PART_MAIN | LV_STATE_DEFAULT);
 #endif
 
-    ws.register_notify_update(this);
-    ws.register_method_callback("notify_gcode_response", "MainPanel",[this](json& d) { this->handle_macro_response(d); });
+    gcode_transmit_.register_notify_update(this);
+    gcode_transmit_.register_method_callback("notify_gcode_response", "MainPanel", [this](json &d) { this->handle_macro_response(d); });
 
     // create header
     lv_label_set_text(header, "HEADER");
@@ -123,38 +117,42 @@ PromptPanel::PromptPanel(KWebSocketClient &websocket_client, std::mutex &lock, l
     lv_style_init(&style_btn_dark_grey);
     lv_style_set_bg_color(&style_btn_dark_grey, lv_palette_darken(LV_PALETTE_GREY, 1));
     lv_style_set_bg_opa(&style_btn_dark_grey, LV_OPA_COVER);
-    
+
     background(); // hide ourselves
 }
 
-
-void PromptPanel::consume(json &j) {
+void PromptPanel::consume(json &j)
+{
 }
 
-PromptPanel::~PromptPanel() {
+PromptPanel::~PromptPanel()
+{
     if (prompt_cont != NULL) {
         lv_obj_del(prompt_cont);
         prompt_cont = NULL;
     }
 
-    ws.unregister_notify_update(this);
+    gcode_transmit_.unregister_notify_update(this);
 }
 
-void PromptPanel::foreground() {
+void PromptPanel::foreground()
+{
     // shrink wrap
     lv_obj_move_foreground(prompt_cont);
 }
 
-void PromptPanel::background() {
-  lv_obj_move_background(prompt_cont);
+void PromptPanel::background()
+{
+    lv_obj_move_background(prompt_cont);
 }
 
-void PromptPanel::handle_callback(lv_event_t *event) {
+void PromptPanel::handle_callback(lv_event_t *event)
+{
     lv_obj_t *btn = lv_event_get_current_target(event);
 
-    PromptPanel *panel = (PromptPanel*)event->user_data;
+    PromptPanel *panel = (PromptPanel *)event->user_data;
 
-    lv_obj_t *label = lv_obj_get_child(btn, 0);
+    lv_obj_t *label   = lv_obj_get_child(btn, 0);
     lv_obj_t *command = lv_obj_get_child(btn, 1);
     // check if btn in command map
     spdlog::debug("handle event");
@@ -170,38 +168,38 @@ void PromptPanel::handle_callback(lv_event_t *event) {
     if (command != NULL) {
         std::string cmd = lv_label_get_text(command);
         spdlog::debug("button: {}", cmd);
-        ws.gcode_script(cmd);
+        gcode_transmit_.gcode_script(cmd);
     }
-
-
 }
 
-void PromptPanel::check_height() {
+void PromptPanel::check_height()
+{
     // check if we need to increase size of the parent container
     lv_obj_t *last_child = lv_obj_get_child(flex, -1);
-    // iterate max 5 times to enlarge, could probably be done nicer but since it's 
+    // iterate max 5 times to enlarge, could probably be done nicer but since it's
     // based on css auto sizing is terrible.
     if (NULL != last_child) {
-        int count = 0;
-        int y = lv_obj_get_y(last_child);
+        int count  = 0;
+        int y      = lv_obj_get_y(last_child);
         int height = lv_obj_get_height(last_child);
-        while(((y + height > lv_obj_get_height(flex)) || height == 0) && count < 5) {
+        while (((y + height > lv_obj_get_height(flex)) || height == 0) && count < 5) {
             spdlog::debug("y: {}, h: {}", y, height);
             if ((y + height > lv_obj_get_height(flex)) || height == 0) {
-                int newheight = (int) (((double)lv_obj_get_height(prompt_cont)) * 1.1);
-                int newwidth = (int) (((double)lv_obj_get_width(prompt_cont)) * 1.1);
+                int newheight = (int)(((double)lv_obj_get_height(prompt_cont)) * 1.1);
+                int newwidth  = (int)(((double)lv_obj_get_width(prompt_cont)) * 1.1);
                 spdlog::debug("Increase size of panel: {}, {}", newheight, newwidth);
                 lv_obj_set_size(prompt_cont, newheight, newwidth);
             }
             lv_obj_update_layout(prompt_cont);
             count++;
-            y = lv_obj_get_y(last_child);
+            y      = lv_obj_get_y(last_child);
             height = lv_obj_get_height(last_child);
         }
     }
 }
 
-void PromptPanel::handle_macro_response(json &j) {
+void PromptPanel::handle_macro_response(json &j)
+{
     spdlog::trace("macro response: {}", j.dump());
     auto &v = j["/params/0"_json_pointer];
 
@@ -216,7 +214,6 @@ void PromptPanel::handle_macro_response(json &j) {
             std::string command = resp.substr(10);
             spdlog::debug("action: {}", command);
 
-            
             if (command.find("prompt_begin") == 0) {
                 std::string prompt_header = command.substr(13);
                 spdlog::debug("PROMPT_BEGIN: {}", prompt_header);
@@ -249,7 +246,7 @@ void PromptPanel::handle_macro_response(json &j) {
                 lv_obj_set_style_border_color(textfield, lv_palette_main(LV_PALETTE_GREEN), LV_PART_MAIN | LV_STATE_DEFAULT);
                 lv_obj_set_style_bg_color(textfield, lv_palette_lighten(LV_PALETTE_GREEN, 2), LV_PART_MAIN | LV_STATE_DEFAULT);
 #endif
-            // due to using find, order IS important!  
+                // due to using find, order IS important!
             } else if (command.find("prompt_button_group_start") == 0) {
                 spdlog::debug("Button group created");
                 // create new button group in flex window and mark active
@@ -276,8 +273,8 @@ void PromptPanel::handle_macro_response(json &j) {
                 spdlog::debug("Button group ended");
                 button_group_cont = NULL;
             } else if (command.find("prompt_footer_button") == 0 || command.find("prompt_button") == 0) {
-                int index_label = command.find("button", 0) + strlen("button");
-                int index_first = command.find("|", index_label);
+                int index_label  = command.find("button", 0) + strlen("button");
+                int index_first  = command.find("|", index_label);
                 int index_second = command.find("|", index_first + 1);
                 spdlog::debug("indexes: {} {} {}", index_label, index_first, index_second);
                 std::string prompt_footer_button = command.substr(index_label, index_first - index_label);
@@ -286,7 +283,7 @@ void PromptPanel::handle_macro_response(json &j) {
                 spdlog::debug("button: {} |  {} | {}", prompt_footer_button, prompt_button_command, prompt_button_type);
                 if (index_second > 0) {
                     prompt_button_command = command.substr(index_first + 1, index_second - index_first - 1);
-                    prompt_button_type = command.substr(index_second + 1, command.length() - index_second - 1);
+                    prompt_button_type    = command.substr(index_second + 1, command.length() - index_second - 1);
                 } else {
                     prompt_button_command = command.substr(index_first + 1);
                 }
@@ -341,7 +338,6 @@ void PromptPanel::handle_macro_response(json &j) {
                         lv_obj_add_style(btn, &style_btn_dark_grey, 0);
                     }
                     lv_obj_add_event_cb(btn, _handle_callback, LV_EVENT_PRESSED, this);
-
                 }
             } else if (command.find("prompt_show") == 0) {
                 spdlog::debug("PROMPT_SHOW");
@@ -359,8 +355,6 @@ void PromptPanel::handle_macro_response(json &j) {
             } else {
                 spdlog::debug("action {} --- not supported", command);
             }
-            
         }
-        
     }
 }

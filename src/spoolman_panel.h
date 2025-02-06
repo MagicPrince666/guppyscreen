@@ -11,7 +11,7 @@
 
 class SpoolmanPanel {
  public:
-  SpoolmanPanel(KWebSocketClient &c, std::mutex &l);
+  SpoolmanPanel(GcodeTransmitClient &c, std::mutex &l);
   ~SpoolmanPanel();
 
   void init();
@@ -33,7 +33,7 @@ class SpoolmanPanel {
   };
 
  private:
-  KWebSocketClient &ws;
+  GcodeTransmitClient &gcode_transmit_;
   std::mutex &lv_lock;
   lv_obj_t *cont;
   lv_obj_t *spool_table;

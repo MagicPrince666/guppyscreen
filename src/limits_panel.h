@@ -11,7 +11,7 @@
 
 class LimitsPanel : public NotifyConsumer {
  public:
-  LimitsPanel(KWebSocketClient &c, std::mutex &l);
+  LimitsPanel(GcodeTransmitClient &c, std::mutex &l);
   ~LimitsPanel();
 
   void init(json &j);
@@ -26,7 +26,7 @@ class LimitsPanel : public NotifyConsumer {
   };
 
  private:
-  KWebSocketClient &ws;
+  GcodeTransmitClient &gcode_transmit_;
   lv_obj_t *cont;
   lv_obj_t *limit_cont;
   SliderContainer velocity;

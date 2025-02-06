@@ -24,7 +24,7 @@ LV_IMG_DECLARE(power_devices_img);
 LV_IMG_DECLARE(print);
 #endif
 
-PrinterTunePanel::PrinterTunePanel(KWebSocketClient &c, std::mutex &l, lv_obj_t *parent, FineTunePanel &finetune)
+PrinterTunePanel::PrinterTunePanel(GcodeTransmitClient &c, std::mutex &l, lv_obj_t *parent, FineTunePanel &finetune)
   : cont(lv_obj_create(parent))
   , bedmesh_panel(c, l)
   , finetune_panel(finetune)
