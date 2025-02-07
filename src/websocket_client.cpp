@@ -183,7 +183,7 @@ void GcodeTransmitClient::register_method_callback(std::string resp_method,
 
 void GcodeTransmitClient::RecvUdsServerBuffer(const uint8_t *buffer, const int length)
 {
-    std::unique_lock<std::mutex> lck(g_mtx_);
+    // std::unique_lock<std::mutex> lck(g_mtx_);
     int32_t buf_size = sizeof(uds_buffer_.rx_buffer) - uds_buffer_.size;
     if (buf_size >= length) {
         memcpy(uds_buffer_.rx_buffer + uds_buffer_.size, buffer, length);
@@ -201,7 +201,7 @@ void GcodeTransmitClient::RecvUdsServerBuffer(const uint8_t *buffer, const int l
             memcpy(buffer, uds_buffer_.rx_buffer + i + 1, uds_buffer_.size);
             memcpy(uds_buffer_.rx_buffer, buffer, uds_buffer_.size);
             HandleCallback(result_str);
-            g_cv_.notify_all(); // 唤醒所有线程.
+            // g_cv_.notify_all(); // 唤醒所有线程.
         }
     }
 }

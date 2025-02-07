@@ -147,13 +147,19 @@ GuppyScreen *GuppyScreen::init(std::function<void(lv_color_t, lv_color_t)> hal_i
         // start initializing all guppy components
         std::string ws_url   = "";
         std::string sockaddr = conf->get<std::string>(conf->df() + "moonraker_host");
-        if (KUtils::FileExists(sockaddr)) {
-            // 本地通信
-            ws_url = fmt::format("{}", sockaddr);
-        } else {
-            ws_url = fmt::format("ws://{}:{}/websocket",
-                                 sockaddr,
-                                 conf->get<uint32_t>(conf->df() + "moonraker_port"));
+        for (uint32_t i = 0; i < 100; i++) {
+            if (KUtils::FileExists(sockaddr)) {
+                // 本地通信
+                ws_url = fmt::format("{}", sockaddr);
+                break;
+            } else {
+                spdlog::info("waiting for {} create", sockaddr);
+                usleep(100000);
+                continue;
+                // ws_url = fmt::format("ws://{}:{}/websocket",
+                //                      sockaddr,
+                //                      conf->get<uint32_t>(conf->df() + "moonraker_port"));
+            }
         }
 
         spdlog::info("connecting to printer at {}", ws_url);
