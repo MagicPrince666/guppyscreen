@@ -1,6 +1,7 @@
 #ifndef __KWEBSOCKET_CLIENT_H__
 #define __KWEBSOCKET_CLIENT_H__
 
+#include "WebSocketClient.h"
 #include "UnixDomainSocket.h"
 #include "json.hpp"
 #include "notify_consumer.h"
@@ -15,10 +16,10 @@
 
 using json = nlohmann::json;
 
-class GcodeTransmitClient
+class GcodeTransmitClient  : public hv::WebSocketClient
 {
 public:
-    GcodeTransmitClient();
+    GcodeTransmitClient(hv::EventLoopPtr loop);
     ~GcodeTransmitClient();
 
     int connect(const char *url,

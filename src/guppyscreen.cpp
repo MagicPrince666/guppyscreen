@@ -29,7 +29,7 @@ lv_theme_t GuppyScreen::th_new;
 lv_obj_t *GuppyScreen::screen_saver = NULL;
 #endif
 
-GcodeTransmitClient GuppyScreen::gcode_transmit_;
+GcodeTransmitClient GuppyScreen::gcode_transmit_(nullptr);
 
 std::mutex GuppyScreen::lv_lock;
 
@@ -153,12 +153,12 @@ GuppyScreen *GuppyScreen::init(std::function<void(lv_color_t, lv_color_t)> hal_i
                 ws_url = fmt::format("{}", sockaddr);
                 break;
             } else {
-                spdlog::info("waiting for {} create", sockaddr);
-                usleep(100000);
-                continue;
-                // ws_url = fmt::format("ws://{}:{}/websocket",
-                //                      sockaddr,
-                //                      conf->get<uint32_t>(conf->df() + "moonraker_port"));
+                // spdlog::info("waiting for {} create", sockaddr);
+                // usleep(100000);
+                // continue;
+                ws_url = fmt::format("ws://{}:{}/websocket",
+                                     sockaddr,
+                                     conf->get<uint32_t>(conf->df() + "moonraker_port"));
             }
         }
 

@@ -43,6 +43,11 @@ set(COMMON_LIBRARIES
     pthread
 )
 
+if(NOT EXISTS "${CMAKE_SOURCE_DIR}/libhv/hconfig.h")
+message(STATUS "libhv/hconfig.h not exists")
+execute_process(COMMAND ./configure WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/libhv)
+endif()
+
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 if (${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86_64")
   message(STATUS "${CMAKE_SYSTEM_PROCESSOR} mechine compile")
@@ -149,3 +154,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
   lvgl::drivers
   ${COMMON_LIBRARIES}
 )
+
+install(TARGETS ${PROJECT_NAME}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_PREFIX}/bin)

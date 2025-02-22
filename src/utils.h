@@ -56,6 +56,14 @@ namespace KUtils {
    */
   bool FileExists(const std::string name);
 
+  /**
+   * @brief 字节转文本
+   * @param data
+   * @param len
+   * @return std::string
+   */
+  std::string Bytes2String(uint8_t *data, uint32_t len);
+
 };
 
 #endif // __K_UTILS_H__
