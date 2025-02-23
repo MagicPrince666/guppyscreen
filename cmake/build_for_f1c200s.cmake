@@ -14,15 +14,12 @@ include_directories(
     include/rv1126
 )
 
-set(LIBUSB_1_INCLUDE_DIRS ${TOOLCHAIN_DIR}/../arm-f1c100s-linux-gnueabi/sysroot/usr/include/libusb-1.0)
+set(CMAKE_PREFIX_PATH ${TOOLCHAIN_DIR}/../arm-f1c100s-linux-gnueabi/sysroot/usr)
 
 # 设置第三方库所在位置
 link_directories(
     ${TOOLCHAIN_DIR}../arm-f1c100s-linux-gnueabi/sysroot/usr/lib
 )
-
-SET(OPENSSL_CRYPTO_LIBRARY ${TOOLCHAIN_DIR}../arm-f1c100s-linux-gnueabi/sysroot/usr/lib/libcrypto.so)
-SET(OPENSSL_SSL_LIBRARY ${TOOLCHAIN_DIR}../arm-f1c100s-linux-gnueabi/sysroot/usr/lib/libssl.so)
 
 # arm64 rockchip rk3308
 SET(CMAKE_C_COMPILER ${TOOLCHAIN_DIR}arm-f1c100s-linux-gnueabi-gcc)
